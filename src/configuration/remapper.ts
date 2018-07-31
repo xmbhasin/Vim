@@ -222,7 +222,7 @@ export class Remapper implements IRemapper {
     let remapping: IKeyRemapping | undefined;
     // let range = Remapper._getRemappedKeysLengthRange(userDefinedRemappings);
 
-    const keysString = inputtedKeys.join(' ');
+    const keysString = inputtedKeys.join('');
 
     const mostRecentMatchingKeysIndex = Object.keys(userDefinedRemappings).reduce(
       (acc, remappingKey) => {
