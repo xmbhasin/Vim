@@ -94,9 +94,9 @@ export class Remapper implements IRemapper {
         }. command=${remapping.commands}.`
       );
 
-      if (!this._recursive) {
-        vimState.isCurrentlyPerformingRemapping = true;
-      }
+      // if (!this._recursive) {
+      vimState.isCurrentlyPerformingRemapping = true;
+      // }
 
       const numCharsToRemove = remapping.before.length - 1;
       // Revert previously inserted characters
@@ -220,32 +220,53 @@ export class Remapper implements IRemapper {
     currentMode: ModeName
   ) {
     let remapping: IKeyRemapping | undefined;
+    // let range = Remapper._getRemappedKeysLengthRange(userDefinedRemappings);
 
-    let range = Remapper._getRemappedKeysLengthRange(userDefinedRemappings);
-    const startingSliceLength = Math.max(range[1], inputtedKeys.length);
-    for (let sliceLength = startingSliceLength; sliceLength >= range[0]; sliceLength--) {
-      const keySlice = inputtedKeys.slice(-sliceLength).join('');
+    const keysString = inputtedKeys.join(' ');
 
-      if (keySlice in userDefinedRemappings) {
-        // In Insert mode, we allow users to precede remapped commands
-        // with extraneous keystrokes (eg. "hello world jj")
-        // In other modes, we have to precisely match the keysequence
-        // unless the preceding keys are numbers
-        if (currentMode !== ModeName.Insert) {
-          const precedingKeys = inputtedKeys
-            .slice(0, inputtedKeys.length - keySlice.length)
-            .join('');
-          if (precedingKeys.length > 0 && !/^[0-9]+$/.test(precedingKeys)) {
-            break;
-          }
+    const mostRecentMatchingKeysIndex = Object.keys(userDefinedRemappings).reduce(
+      (acc, remappingKey) => {
+        const max = Math.max(acc[0], keysString.lastIndexOf(remappingKey));
+        if (acc[0] !== max) {
+          return [max, remappingKey.length];
+        } else {
+          return acc;
         }
+      },
+      [-1, 0]
+    );
+    const mostRecentMatchingKeys = keysString.slice(
+      mostRecentMatchingKeysIndex[0],
+      mostRecentMatchingKeysIndex[0] + mostRecentMatchingKeysIndex[1]
+    );
 
-        remapping = userDefinedRemappings[keySlice];
-        break;
-      }
-    }
+    remapping = userDefinedRemappings[mostRecentMatchingKeys];
 
     return remapping;
+
+    // for (let sliceLength = startingSliceLength; sliceLength >= range[0]; sliceLength--) {
+    //   const keySlice = inputtedKeys.slice(-sliceLength).join('');
+
+    //   if (keySlice in userDefinedRemappings) {
+    //     // In Insert mode, we allow users to precede remapped commands
+    //     // with extraneous keystrokes (eg. "hello world jj")
+    //     // In other modes, we have to precisely match the keysequence
+    //     // unless the preceding keys are numbers
+    //     if (currentMode !== ModeName.Insert) {
+    //       const precedingKeys = inputtedKeys
+    //         .slice(0, inputtedKeys.length - keySlice.length)
+    //         .join('');
+    //       if (precedingKeys.length > 0 && !/^[0-9]+$/.test(precedingKeys)) {
+    //         break;
+    //       }
+    //     }
+
+    //     remapping = userDefinedRemappings[keySlice];
+    //     break;
+    //   }
+    // }
+
+    // return remapping;
   }
 
   /**
